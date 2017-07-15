@@ -19,12 +19,21 @@ npm install -g node-gyp@latest
 
 ```
 sudo apt-get install automake libtool git
-git clone https://github.com/thomasmacpherson/piface.git
-cd piface/c
-./autogen.sh && ./configure && make && sudo make install
-sudo ldconfig
-cd ../scripts
-sudo ./spidev-setup
+
+git clone https://github.com/piface/libmcp23s17.git
+cd libmcp23s17
+make && sudo make install
+
+git clone https://github.com/piface/libpifacedigital.git
+cd libpifacedigital
+make && sudo make install
+```
+
+- Enable SPI kernel module in raspi configuration
+(located in `interface options` -> `SPI`, eventually reboot is needed )
+
+```
+sudo raspi-config
 ```
 
 - Install the PiFace NodeJS module

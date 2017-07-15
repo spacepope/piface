@@ -1,21 +1,32 @@
 #include <node.h>
 #include <v8.h>
-#include <libpiface-1.0/pfio.h>
+#include <pifacedigital.h>
 
 using namespace v8;
 
 void PfioInit(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	pfio_init();
+	Isolate* isolate = args.GetIsolate();
+	uint8_t hw_addr = 0;
+	if (args.Length() >= 1) {
+		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
+	}
+	uint8_t pifacedigital_fd = pifacedigital_open(hw_addr);
+	args.GetReturnValue().Set(pifacedigital_fd);
 }
 
 void PfioDeinit(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	pfio_deinit();
+	Isolate* isolate = args.GetIsolate();
+	uint8_t hw_addr = 0;
+	if (args.Length() >= 1) {
+		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
+	}
+	pifacedigital_close(hw_addr);
 }
 
 void PfioDigitalRead(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	uint8_t pin = Integer::New(isolate, args[0]->IntegerValue())->Value();
-	uint8_t val = pfio_digital_read(pin);
+	uint8_t val = pifacedigital_digital_read(pin);
 	args.GetReturnValue().Set(val);
 }
 
@@ -23,23 +34,37 @@ void PfioDigitalWrite(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	uint8_t pin = Integer::New(isolate, args[0]->IntegerValue())->Value();
 	uint8_t val = Integer::New(isolate, args[1]->IntegerValue())->Value();
-	pfio_digital_write(pin, val);
+	pifacedigital_digital_write(pin, val);
 }
 
 void PfioReadInput(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	uint8_t val = pfio_read_input();
+	Isolate* isolate = args.GetIsolate();
+	uint8_t hw_addr = 0;
+	if (args.Length() >= 1) {
+		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
+	}
+	uint8_t val = pifacedigital_read_reg(INPUT, hw_addr);
 	args.GetReturnValue().Set(val);
 }
 
 void PfioReadOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
-	uint8_t val = pfio_read_output();
+	Isolate* isolate = args.GetIsolate();
+	uint8_t hw_addr = 0;
+	if (args.Length() >= 1) {
+		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
+	}
+	uint8_t val = pifacedigital_read_reg(OUTPUT, hw_addr);
 	args.GetReturnValue().Set(val);
 }
 
 void PfioWriteOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	uint8_t val = Integer::New(isolate, args[0]->IntegerValue())->Value();
-	pfio_write_output(val);
+	uint8_t hw_addr = 0;
+	if (args.Length() > 1) {
+		hw_addr = Integer::New(isolate, args[1]->IntegerValue())->Value();
+	}
+	pifacedigital_write_reg(val, OUTPUT, hw_addr);
 }
 
 void init(Handle<Object> exports) {
