@@ -10,7 +10,7 @@ void PfioInit(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	if (args.Length() >= 1) {
 		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
 	}
-	uint8_t pifacedigital_fd = pifacedigital_open(hw_addr);
+	int pifacedigital_fd = pifacedigital_open(hw_addr);
 	args.GetReturnValue().Set(pifacedigital_fd);
 }
 
