@@ -84,3 +84,35 @@ var val = pfio.read_input(); // returns 0..255
 var val = pfio.read_output(pin, val); // returns 0..255
 pfio.write_output(val);
 ```
+
+- Interrupts
+
+```javascript
+const piface = require("piface");
+
+console.log("Initializing PiFace..");
+piface.init();
+console.log("Enabling interrupts..");
+piface.enable_interrupts();
+console.log("Ready. Waiting for input changes..");
+
+const irFunc = () => {
+  try {
+    // wait for interrupt with infinite timeout
+    const input = piface.wait_for_input(-1);
+    console.log("Input:", input);
+
+    // restart
+    setTimeout(() => {
+      irFunc();  
+    }, 0);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// initially start waiting for interrupt
+setTimeout(() => {
+  irFunc();  
+}, 0);
+```

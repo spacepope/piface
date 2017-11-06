@@ -14,6 +14,16 @@ void PfioInit(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	args.GetReturnValue().Set(pifacedigital_fd);
 }
 
+void PfioOpenNoInit(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	uint8_t hw_addr = 0;
+	if (args.Length() >= 1) {
+		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
+	}
+	int pifacedigital_fd = pifacedigital_open_noinit(hw_addr);
+	args.GetReturnValue().Set(pifacedigital_fd);
+}
+
 void PfioDeinit(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	uint8_t hw_addr = 0;
@@ -67,14 +77,48 @@ void PfioWriteOutput(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	pifacedigital_write_reg(val, OUTPUT, hw_addr);
 }
 
+void PfioEnableInterrupts(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	int res = pifacedigital_enable_interrupts();
+	bool ok = (res == 0);
+	args.GetReturnValue().Set(ok);
+}
+
+void PfioDisableInterrupts(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	int res = pifacedigital_disable_interrupts();
+	bool ok = (res == 0);
+	args.GetReturnValue().Set(ok);
+}
+
+void PfioWaitForInput(const v8::FunctionCallbackInfo<v8::Value>& args) {
+	Isolate* isolate = args.GetIsolate();
+	int timeout = Integer::New(isolate, args[0]->IntegerValue())->Value();
+	uint8_t hw_addr = 0;
+	if (args.Length() > 1) {
+		hw_addr = Integer::New(isolate, args[1]->IntegerValue())->Value();
+	}
+	uint8_t inputs;
+	int res = pifacedigital_wait_for_input(&inputs, timeout, hw_addr);
+	if (res < 0) {
+		isolate->ThrowException(String::NewFromUtf8(isolate, "Error waiting on interrupt."));
+	} else if (res == 0) {
+		isolate->ThrowException(String::NewFromUtf8(isolate, "Interrupt timed out."));
+	} else {
+		args.GetReturnValue().Set(inputs ^ 0xFF);
+	}
+}
+
 void init(Handle<Object> exports) {
 	NODE_SET_METHOD(exports, "init", PfioInit);
+	NODE_SET_METHOD(exports, "open_noinit", PfioOpenNoInit);
 	NODE_SET_METHOD(exports, "deinit", PfioDeinit);
 	NODE_SET_METHOD(exports, "digital_read", PfioDigitalRead);
 	NODE_SET_METHOD(exports, "digital_write", PfioDigitalWrite);
 	NODE_SET_METHOD(exports, "read_input", PfioReadInput);
 	NODE_SET_METHOD(exports, "read_output", PfioReadOutput);
 	NODE_SET_METHOD(exports, "write_output", PfioWriteOutput);
+	NODE_SET_METHOD(exports, "enable_interrupts", PfioEnableInterrupts);
+	NODE_SET_METHOD(exports, "disable_interrupts", PfioDisableInterrupts);
+	NODE_SET_METHOD(exports, "wait_for_input", PfioWaitForInput);
 }
 
 NODE_MODULE(pfio, init);
