@@ -8,8 +8,8 @@
 			"sources": [ "pfio.cc" ],
 			'link_settings': {
 				'libraries': [
-					'-lmcp23s17',
-					'-lpifacedigital'
+					'-lpifacedigital',
+					'-lmcp23s17'
 				]
 			}
 		}

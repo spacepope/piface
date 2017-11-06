@@ -10,7 +10,7 @@ void PfioInit(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	if (args.Length() >= 1) {
 		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
 	}
-	uint8_t pifacedigital_fd = pifacedigital_open(hw_addr);
+	int pifacedigital_fd = pifacedigital_open(hw_addr);
 	args.GetReturnValue().Set(pifacedigital_fd);
 }
 
@@ -26,7 +26,7 @@ void PfioDeinit(const v8::FunctionCallbackInfo<v8::Value>& args) {
 void PfioDigitalRead(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	Isolate* isolate = args.GetIsolate();
 	uint8_t pin = Integer::New(isolate, args[0]->IntegerValue())->Value();
-	uint8_t val = pifacedigital_digital_read(pin);
+	uint8_t val = pifacedigital_digital_read(pin) ^ 1; // invert value to match original API
 	args.GetReturnValue().Set(val);
 }
 
@@ -43,7 +43,7 @@ void PfioReadInput(const v8::FunctionCallbackInfo<v8::Value>& args) {
 	if (args.Length() >= 1) {
 		hw_addr = Integer::New(isolate, args[0]->IntegerValue())->Value();
 	}
-	uint8_t val = pifacedigital_read_reg(INPUT, hw_addr);
+	uint8_t val = pifacedigital_read_reg(INPUT, hw_addr) ^ 0xFF; // invert value to match original API
 	args.GetReturnValue().Set(val);
 }
 
